@@ -8,35 +8,38 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #f5f5f5;
+  background: #fdf2f6;
   padding-bottom: 100px;
 }
 
 .top-nav {
-  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
+  background: linear-gradient(135deg, #ff8fb3, #ffa8c5);
   color: #fff;
-  padding: 15px 20px;
+  padding: 18px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 2px 10px rgba(255, 107, 157, 0.2);
 }
-.top-nav h1 { font-size: 20px; }
+.top-nav h1 { font-size: 20px; font-weight: bold; }
 .nav-tabs {
   display: flex;
-  background: rgba(255,255,255,0.2);
-  border-radius: 20px;
-  padding: 3px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 25px;
+  padding: 4px;
 }
 .nav-tab {
-  padding: 6px 16px;
-  border-radius: 18px;
+  padding: 7px 18px;
+  border-radius: 20px;
   font-size: 13px;
   cursor: pointer;
+  transition: all 0.2s;
 }
 .nav-tab.active {
   background: #fff;
   color: #ff6b9d;
   font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .page { display: none; }
@@ -44,52 +47,59 @@ body {
 
 .categories {
   background: #fff;
-  padding: 12px 15px;
+  padding: 14px 15px;
   display: flex;
   overflow-x: auto;
-  gap: 8px;
+  gap: 10px;
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.03);
 }
+.categories::-webkit-scrollbar { display: none; }
 .cat-tab {
-  padding: 6px 14px;
-  border-radius: 16px;
-  background: #f5f5f5;
+  padding: 7px 16px;
+  border-radius: 20px;
+  background: #fdf0f5;
   font-size: 13px;
-  color: #666;
+  color: #888;
   white-space: nowrap;
   cursor: pointer;
+  transition: all 0.2s;
 }
 .cat-tab.active {
-  background: #ff6b9d;
+  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
   color: #fff;
+  box-shadow: 0 3px 10px rgba(255, 107, 157, 0.3);
 }
 
-.snack-list { padding: 12px; }
+.snack-list { padding: 14px; }
 .snack-item {
   background: #fff;
-  border-radius: 10px;
-  padding: 14px;
-  margin-bottom: 10px;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
+  box-shadow: 0 2px 8px rgba(255, 107, 157, 0.06);
+  transition: transform 0.15s;
 }
+.snack-item:active { transform: scale(0.98); }
 .snack-emoji {
-  width: 55px;
-  height: 55px;
-  background: #fff5f8;
-  border-radius: 8px;
+  width: 60px;
+  height: 60px;
+  background: #fff0f5;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
-  margin-right: 12px;
+  font-size: 30px;
+  margin-right: 14px;
   flex-shrink: 0;
 }
 .snack-info { flex: 1; }
-.snack-name { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 3px; }
-.snack-desc { font-size: 11px; color: #999; margin-bottom: 6px; }
+.snack-name { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 4px; }
+.snack-desc { font-size: 11px; color: #aaa; margin-bottom: 8px; }
 .snack-price { color: #ff4081; font-weight: bold; font-size: 16px; }
 
 .snack-actions {
@@ -98,97 +108,119 @@ body {
   gap: 8px;
 }
 .plus-btn, .minus-btn {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: bold;
   cursor: pointer;
+  transition: all 0.15s;
 }
-.plus-btn { background: #ff6b9d; color: #fff; }
-.minus-btn { background: #fff; color: #ff6b9d; border: 2px solid #ff6b9d; }
-.count { font-size: 14px; font-weight: bold; min-width: 16px; text-align: center; }
+.plus-btn { background: linear-gradient(135deg, #ff6b9d, #ff8fb3); color: #fff; box-shadow: 0 3px 8px rgba(255, 107, 157, 0.3); }
+.plus-btn:active { transform: scale(0.9); }
+.minus-btn { background: #fff; color: #ff6b9d; border: 2px solid #ffd0dd; }
+.minus-btn:active { transform: scale(0.9); }
+.count { font-size: 15px; font-weight: bold; min-width: 18px; text-align: center; }
 
 .bottom-bar {
   position: fixed;
   bottom: 0;
   left: 0; right: 0;
-  height: 60px;
+  height: 65px;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 15px;
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+  padding: 0 18px;
+  box-shadow: 0 -2px 15px rgba(255, 107, 157, 0.1);
 }
 .cart-left { display: flex; align-items: center; }
-.cart-icon { font-size: 24px; margin-right: 8px; position: relative; }
+.cart-icon { font-size: 26px; margin-right: 10px; position: relative; }
 .cart-badge {
   position: absolute;
-  top: -5px;
-  right: -8px;
+  top: -6px;
+  right: -10px;
   background: #ff4081;
   color: #fff;
-  font-size: 10px;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
+  font-size: 11px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
+  padding: 0 5px;
+  box-shadow: 0 2px 6px rgba(255, 64, 129, 0.4);
 }
-.cart-total { color: #ff4081; font-weight: bold; font-size: 16px; }
+.cart-total { color: #ff4081; font-weight: bold; font-size: 17px; }
 .submit-btn {
   background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
   color: #fff;
-  padding: 10px 25px;
-  border-radius: 20px;
+  padding: 12px 28px;
+  border-radius: 25px;
   font-size: 14px;
   border: none;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 107, 157, 0.35);
+  transition: transform 0.15s;
 }
-.submit-btn.disabled { background: #ddd; color: #999; }
+.submit-btn:active { transform: scale(0.95); }
+.submit-btn.disabled { background: #eee; color: #aaa; box-shadow: none; }
 
 .order-list { padding: 15px; }
 .order-card {
   background: #fff;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 12px;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px rgba(255, 107, 157, 0.08);
 }
 .order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #f5f5f5;
-  margin-bottom: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #fdf0f5;
+  margin-bottom: 12px;
 }
-.order-time { font-size: 13px; color: #999; }
+.order-time { font-size: 13px; color: #888; }
+.order-actions { display: flex; gap: 8px; }
 .order-status {
   font-size: 12px;
-  padding: 3px 10px;
-  border-radius: 10px;
+  padding: 4px 12px;
+  border-radius: 12px;
   background: #fff3e8;
   color: #ff6700;
 }
-.order-items { margin-bottom: 10px; }
+.order-status.done {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+.delete-btn {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #ffebee;
+  color: #f44336;
+  border: none;
+  cursor: pointer;
+}
+.order-items { margin-bottom: 12px; }
 .order-item {
   display: flex;
   justify-content: space-between;
-  padding: 5px 0;
+  padding: 6px 0;
   font-size: 14px;
-  color: #333;
+  color: #555;
 }
 .order-footer {
   display: flex;
   justify-content: space-between;
-  padding-top: 10px;
-  border-top: 1px solid #f5f5f5;
+  padding-top: 12px;
+  border-top: 1px solid #fdf0f5;
   font-weight: bold;
 }
 .order-total { color: #ff4081; }
@@ -560,11 +592,14 @@ function loadOrders() {
     return
   }
   
-  document.getElementById('orderList').innerHTML = orders.map(order => `
+  document.getElementById('orderList').innerHTML = orders.map((order, index) => `
     <div class="order-card">
       <div class="order-header">
         <div class="order-time">${order.time}</div>
-        <div class="order-status">待配送</div>
+        <div class="order-actions">
+          <div class="order-status ${order.done ? 'done' : ''}" onclick="toggleDone(${index})" style="cursor:pointer">${order.done ? '✓ 已买' : '待买'}</div>
+          <button class="delete-btn" onclick="deleteOrder(${index})">删除</button>
+        </div>
       </div>
       <div class="order-items">
         ${order.items.map(item => `
@@ -580,6 +615,21 @@ function loadOrders() {
       </div>
     </div>
   `).join('')
+}
+
+function toggleDone(index) {
+  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
+  orders[index].done = !orders[index].done
+  localStorage.setItem('orders', JSON.stringify(orders))
+  loadOrders()
+}
+
+function deleteOrder(index) {
+  if (!confirm('确定删除这个订单吗？')) return
+  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
+  orders.splice(index, 1)
+  localStorage.setItem('orders', JSON.stringify(orders))
+  loadOrders()
 }
 
 // 初始化
