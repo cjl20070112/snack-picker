@@ -15,35 +15,12 @@ body {
 .top-nav {
   background: linear-gradient(135deg, #ff8fb3, #ffa8c5);
   color: #fff;
-  padding: 18px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding: 20px;
+  text-align: center;
   box-shadow: 0 2px 10px rgba(255, 107, 157, 0.2);
 }
-.top-nav h1 { font-size: 20px; font-weight: bold; }
-.nav-tabs {
-  display: flex;
-  background: rgba(255,255,255,0.25);
-  border-radius: 25px;
-  padding: 4px;
-}
-.nav-tab {
-  padding: 7px 18px;
-  border-radius: 20px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.nav-tab.active {
-  background: #fff;
-  color: #ff6b9d;
-  font-weight: bold;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.page { display: none; }
-.page.active { display: block; }
+.top-nav h1 { font-size: 22px; font-weight: bold; }
+.top-nav p { font-size: 13px; opacity: 0.9; margin-top: 4px; }
 
 .categories {
   background: #fff;
@@ -170,68 +147,6 @@ body {
 .submit-btn:active { transform: scale(0.95); }
 .submit-btn.disabled { background: #eee; color: #aaa; box-shadow: none; }
 
-.order-list { padding: 15px; }
-.order-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 18px;
-  margin-bottom: 14px;
-  box-shadow: 0 2px 10px rgba(255, 107, 157, 0.08);
-}
-.order-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #fdf0f5;
-  margin-bottom: 12px;
-}
-.order-time { font-size: 13px; color: #888; }
-.order-actions { display: flex; gap: 8px; }
-.order-status {
-  font-size: 12px;
-  padding: 4px 12px;
-  border-radius: 12px;
-  background: #fff3e8;
-  color: #ff6700;
-}
-.order-status.done {
-  background: #e8f5e9;
-  color: #4caf50;
-}
-.delete-btn {
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 12px;
-  background: #ffebee;
-  color: #f44336;
-  border: none;
-  cursor: pointer;
-}
-.order-items { margin-bottom: 12px; }
-.order-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  font-size: 14px;
-  color: #555;
-}
-.order-footer {
-  display: flex;
-  justify-content: space-between;
-  padding-top: 12px;
-  border-top: 1px solid #fdf0f5;
-  font-weight: bold;
-}
-.order-total { color: #ff4081; }
-
-.empty {
-  text-align: center;
-  padding: 80px 0;
-  color: #999;
-}
-.empty-icon { font-size: 60px; margin-bottom: 15px; }
-
 .modal-mask {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -244,7 +159,7 @@ body {
   bottom: 0;
   left: 0; right: 0;
   background: #fff;
-  border-radius: 15px 15px 0 0;
+  border-radius: 20px 20px 0 0;
   padding: 20px;
   z-index: 101;
   max-height: 70vh;
@@ -252,7 +167,7 @@ body {
   flex-direction: column;
 }
 .modal-title {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: bold;
   text-align: center;
   margin-bottom: 15px;
@@ -261,84 +176,58 @@ body {
 .modal-item {
   display: flex;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #f5f5f5;
+  padding: 12px 0;
+  border-bottom: 1px solid #fdf0f5;
 }
-.modal-emoji { font-size: 20px; margin-right: 10px; }
+.modal-emoji { font-size: 22px; margin-right: 12px; }
 .modal-name { flex: 1; font-size: 14px; }
 .modal-count { font-size: 13px; color: #999; margin-right: 12px; }
 .modal-price { color: #ff4081; font-weight: bold; }
 .modal-footer { display: flex; gap: 10px; margin-top: 15px; }
 .modal-btn {
   flex: 1;
-  padding: 10px;
-  border-radius: 20px;
+  padding: 12px;
+  border-radius: 25px;
   font-size: 14px;
   border: none;
   cursor: pointer;
 }
-.btn-cancel { background: #f5f5f5; color: #666; }
-.btn-confirm { background: #ff6b9d; color: #fff; }
-
-.loading {
-  text-align: center;
-  padding: 40px 0;
-  color: #999;
-}
+.btn-cancel { background: #fdf0f5; color: #666; }
+.btn-confirm { background: linear-gradient(135deg, #ff6b9d, #ff8fb3); color: #fff; }
 </style>
 </head>
 <body>
 
 <div class="top-nav">
   <h1>🍬 零食小铺</h1>
-  <div class="nav-tabs">
-    <div class="nav-tab active" onclick="switchPage('user', this)">我要选零食</div>
-    <div class="nav-tab" onclick="switchPage('admin', this)">管理后台</div>
-  </div>
+  <p>选你喜欢的，他给你买～</p>
 </div>
 
-<!-- 用户端页面 -->
-<div class="page active" id="page-user">
-  <div class="categories" id="categories"></div>
-  <div class="snack-list" id="snackList"></div>
-  
-  <div class="bottom-bar">
-    <div class="cart-left">
-      <div class="cart-icon">
-        🛒
-        <div class="cart-badge" id="cartBadge" style="display:none">0</div>
-      </div>
-      <div class="cart-total" id="cartTotal">¥0.0</div>
+<div class="categories" id="categories"></div>
+<div class="snack-list" id="snackList"></div>
+
+<div class="bottom-bar">
+  <div class="cart-left">
+    <div class="cart-icon">
+      🛒
+      <div class="cart-badge" id="cartBadge" style="display:none">0</div>
     </div>
-    <button class="submit-btn disabled" id="submitBtn" onclick="showConfirm()">提交订单</button>
+    <div class="cart-total" id="cartTotal">¥0.0</div>
   </div>
+  <button class="submit-btn disabled" id="submitBtn" onclick="showConfirm()">选好了</button>
 </div>
 
-<!-- 管理端页面 -->
-<div class="page" id="page-admin">
-  <div class="loading" id="adminLoading">加载中...</div>
-  <div class="order-list" id="orderList"></div>
-</div>
-
-<!-- 确认弹窗 -->
 <div class="modal-mask" id="modalMask" onclick="hideModal()"></div>
 <div class="modal" id="modal">
-  <div class="modal-title">确认订单</div>
+  <div class="modal-title" id="modalTitle">确认清单</div>
   <div class="modal-list" id="modalList"></div>
-  <div class="modal-footer">
-    <button class="modal-btn btn-cancel" onclick="hideModal()">再想想</button>
-    <button class="modal-btn btn-confirm" onclick="submitOrder()">确认提交</button>
+  <div class="modal-footer" id="modalFooter">
+    <button class="modal-btn btn-cancel" onclick="hideModal()">再选选</button>
+    <button class="modal-btn btn-confirm" onclick="submitOrder()">就这些啦</button>
   </div>
 </div>
 
 <script>
-// GitHub 配置
-const GITHUB_CONFIG = {
-  owner: 'cjl20070112',
-  repo: 'snack-picker',
-  token: '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'
-}
-
 const snacks = [
   { id: 101, name: '薯片（原味）', desc: '嘎吱脆，经典原味', price: 6.5, emoji: '🥔', cat: 2 },
   { id: 102, name: '薯片（番茄味）', desc: '酸甜可口，女生最爱', price: 6.5, emoji: '🍅', cat: 2 },
@@ -394,26 +283,15 @@ const snacks = [
 
 const categories = [
   { id: 1, name: '全部' },
-  { id: 2, name: '膨化食品' },
+  { id: 2, name: '膨化辣条' },
   { id: 3, name: '糖果巧克力' },
-  { id: 4, name: '坚果炒货' },
+  { id: 4, name: '坚果果干' },
   { id: 5, name: '肉干肉脯' },
-  { id: 6, name: '饼干饮品' }
+  { id: 6, name: '烘焙饮品' }
 ]
 
 let activeCat = 1
 let cart = {}
-
-function switchPage(page, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'))
-  document.getElementById('page-' + page).classList.add('active')
-  el.classList.add('active')
-  
-  if (page === 'admin') {
-    loadOrders()
-  }
-}
 
 function renderCategories() {
   const el = document.getElementById('categories')
@@ -505,7 +383,7 @@ function showConfirm() {
       <div class="modal-count">x${item.count}</div>
       <div class="modal-price">¥${(item.price * item.count).toFixed(1)}</div>
     </div>
-  `).join('') + `<div style="text-align:right; padding:12px 0; font-weight:bold; color:#ff4081">合计：¥${total.toFixed(1)}</div>`
+  `).join('') + `<div style="text-align:right; padding:15px 0; font-weight:bold; color:#ff4081; font-size:16px;">合计：¥${total.toFixed(1)}</div>`
   
   document.getElementById('modalMask').style.display = 'block'
   document.getElementById('modal').style.display = 'flex'
@@ -532,37 +410,27 @@ function submitOrder() {
   const now = new Date()
   const timeStr = now.toLocaleString('zh-CN')
   
-  // 把订单数据编码成 URL
   const orderData = {
     time: timeStr,
     total: total.toFixed(1),
     items: items.map(i => ({ name: i.name, count: i.count, price: i.price, emoji: i.emoji }))
   }
   const encoded = btoa(encodeURIComponent(JSON.stringify(orderData)))
-  const shareUrl = `${window.location.origin}${window.location.pathname}?order=${encoded}`
+  const shareUrl = `${window.location.origin}${window.location.pathname.replace('index.html', 'admin.html')}?order=${encoded}`
   
-  // 显示分享弹窗
-  document.querySelector('.modal-title').textContent = '订单已生成！'
+  document.getElementById('modalTitle').textContent = '清单生成好啦！'
   document.getElementById('modalList').innerHTML = `
     <div style="text-align:center; padding: 20px 0;">
-      <div style="font-size: 48px; margin-bottom: 15px;">🎁</div>
-      <div style="font-size: 15px; color: #666; margin-bottom: 20px;">
-        把下面这个链接发给对方，他打开就能看到你选的零食啦
+      <div style="font-size: 52px; margin-bottom: 15px;">🎁</div>
+      <div style="font-size: 15px; color: #666; margin-bottom: 20px; line-height: 1.6;">
+        点下面按钮复制链接，发给对方<br>他打开就能看到你选的零食啦
       </div>
-      <div style="background: #f5f5f5; padding: 12px; border-radius: 8px; word-break: break-all; font-size: 12px; color: #333; margin-bottom: 15px;">
-        ${shareUrl}
-      </div>
-      <button onclick="copyShareLink('${shareUrl}')" style="background: #ff6b9d; color: #fff; border: none; padding: 10px 30px; border-radius: 20px; font-size: 14px; cursor: pointer;">
-        复制链接
+      <button onclick="copyShareLink('${shareUrl}')" style="background: linear-gradient(135deg, #ff6b9d, #ff8fb3); color: #fff; border: none; padding: 12px 35px; border-radius: 25px; font-size: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.35);">
+        复制链接发给他
       </button>
     </div>
   `
-  document.querySelector('.modal-footer').style.display = 'none'
-  
-  // 保存订单到本地
-  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-  orders.unshift(orderData)
-  localStorage.setItem('orders', JSON.stringify(orders))
+  document.getElementById('modalFooter').style.display = 'none'
   
   cart = {}
   renderSnacks()
@@ -570,138 +438,15 @@ function submitOrder() {
 
 function copyShareLink(url) {
   navigator.clipboard.writeText(url).then(() => {
-    alert('链接已复制，快发给对方吧～')
+    alert('链接已复制，快发给他吧～')
     hideModal()
-    document.querySelector('.modal-footer').style.display = 'flex'
-    document.querySelector('.modal-title').textContent = '确认订单'
+    document.getElementById('modalFooter').style.display = 'flex'
+    document.getElementById('modalTitle').textContent = '确认清单'
   })
 }
 
-// 从本地加载订单列表
-function loadOrders() {
-  document.getElementById('adminLoading').style.display = 'none'
-  
-  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-  
-  if (orders.length === 0) {
-    document.getElementById('orderList').innerHTML = `<div class="empty">
-      <div class="empty-icon">📦</div>
-      <div>还没有订单哦</div>
-      <div style="font-size: 12px; margin-top: 10px; color: #bbb;">她选完后把链接发给你，你打开就能看到啦</div>
-    </div>`
-    return
-  }
-  
-  // 最新订单是第一个
-  const latest = orders[0]
-  // 历史订单是剩下的
-  const history = orders.slice(1)
-  
-  let html = `
-    <div style="font-size: 14px; font-weight: bold; color: #666; margin: 5px 0 12px 5px;">🌟 最新订单</div>
-    <div class="order-card" style="border: 2px solid #ff8fb3; box-shadow: 0 4px 15px rgba(255, 107, 157, 0.15);">
-      <div class="order-header">
-        <div class="order-time">${latest.time}</div>
-        <div class="order-actions">
-          <div class="order-status ${latest.done ? 'done' : ''}" onclick="toggleDone(0)" style="cursor:pointer">${latest.done ? '✓ 已买' : '待买'}</div>
-          <button class="delete-btn" onclick="deleteOrder(0)">删除</button>
-        </div>
-      </div>
-      <div class="order-items">
-        ${latest.items.map(item => `
-          <div class="order-item">
-            <span>${item.emoji} ${item.name} x${item.count}</span>
-            <span>¥${(item.price * item.count).toFixed(1)}</span>
-          </div>
-        `).join('')}
-      </div>
-      <div class="order-footer">
-        <span>合计</span>
-        <span class="order-total">¥${latest.total}</span>
-      </div>
-    </div>
-  `
-  
-  if (history.length > 0) {
-    html += `
-      <div style="font-size: 14px; font-weight: bold; color: #666; margin: 25px 0 12px 5px;">📚 历史订单（${history.length}个）</div>
-    `
-    history.forEach((order, index) => {
-      const realIndex = index + 1
-      html += `
-        <div class="order-card" style="opacity: ${order.done ? '0.7' : '1'};">
-          <div class="order-header">
-            <div class="order-time">${order.time}</div>
-            <div class="order-actions">
-              <div class="order-status ${order.done ? 'done' : ''}" onclick="toggleDone(${realIndex})" style="cursor:pointer">${order.done ? '✓ 已买' : '待买'}</div>
-              <button class="delete-btn" onclick="deleteOrder(${realIndex})">删除</button>
-            </div>
-          </div>
-          <div class="order-items">
-            ${order.items.map(item => `
-              <div class="order-item">
-                <span>${item.emoji} ${item.name} x${item.count}</span>
-                <span>¥${(item.price * item.count).toFixed(1)}</span>
-              </div>
-            `).join('')}
-          </div>
-          <div class="order-footer">
-            <span>合计</span>
-            <span class="order-total">¥${order.total}</span>
-          </div>
-        </div>
-      `
-    })
-  }
-  
-  document.getElementById('orderList').innerHTML = html
-}
-
-function toggleDone(index) {
-  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-  orders[index].done = !orders[index].done
-  localStorage.setItem('orders', JSON.stringify(orders))
-  loadOrders()
-}
-
-function deleteOrder(index) {
-  if (!confirm('确定删除这个订单吗？')) return
-  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-  orders.splice(index, 1)
-  localStorage.setItem('orders', JSON.stringify(orders))
-  loadOrders()
-}
-
-// 初始化
 renderCategories()
 renderSnacks()
-
-// 如果 URL 里有订单参数，自动显示并保存
-function checkUrlOrder() {
-  const params = new URLSearchParams(window.location.search)
-  const orderStr = params.get('order')
-  if (orderStr) {
-    try {
-      const order = JSON.parse(decodeURIComponent(atob(orderStr)))
-      // 保存到本地
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-      // 避免重复保存
-      const exists = orders.some(o => o.time === order.time)
-      if (!exists) {
-        orders.unshift(order)
-        localStorage.setItem('orders', JSON.stringify(orders))
-      }
-      // 显示在管理后台
-      switchPage('admin', document.querySelectorAll('.nav-tab')[1])
-      setTimeout(() => {
-        alert('收到新订单！🎉')
-      }, 300)
-    } catch(e) {
-      console.error(e)
-    }
-  }
-}
-checkUrlOrder()
 </script>
 </body>
 </html>

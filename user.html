@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🍬 零食小铺 - 选零食</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #fdf2f6;
+  padding-bottom: 100px;
+}
+
+.top-nav {
+  background: linear-gradient(135deg, #ff8fb3, #ffa8c5);
+  color: #fff;
+  padding: 20px 20px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(255, 107, 157, 0.2);
+}
+.top-nav h1 { font-size: 22px; font-weight: bold; }
+.top-nav p { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+
+.categories {
+  background: #fff;
+  padding: 14px 15px;
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.03);
+}
+.categories::-webkit-scrollbar { display: none; }
+.cat-tab {
+  padding: 7px 16px;
+  border-radius: 20px;
+  background: #fdf0f5;
+  font-size: 13px;
+  color: #888;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cat-tab.active {
+  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(255, 107, 157, 0.3);
+}
+
+.snack-list { padding: 14px; }
+.snack-item {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(255, 107, 157, 0.06);
+  transition: transform 0.15s;
+}
+.snack-item:active { transform: scale(0.98); }
+.snack-emoji {
+  width: 60px;
+  height: 60px;
+  background: #fff0f5;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  margin-right: 14px;
+  flex-shrink: 0;
+}
+.snack-info { flex: 1; }
+.snack-name { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 4px; }
+.snack-desc { font-size: 11px; color: #aaa; margin-bottom: 8px; }
+.snack-price { color: #ff4081; font-weight: bold; font-size: 16px; }
+
+.snack-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.plus-btn, .minus-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.plus-btn { background: linear-gradient(135deg, #ff6b9d, #ff8fb3); color: #fff; box-shadow: 0 3px 8px rgba(255, 107, 157, 0.3); }
+.plus-btn:active { transform: scale(0.9); }
+.minus-btn { background: #fff; color: #ff6b9d; border: 2px solid #ffd0dd; }
+.minus-btn:active { transform: scale(0.9); }
+.count { font-size: 15px; font-weight: bold; min-width: 18px; text-align: center; }
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  height: 65px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  box-shadow: 0 -2px 15px rgba(255, 107, 157, 0.1);
+}
+.cart-left { display: flex; align-items: center; }
+.cart-icon { font-size: 26px; margin-right: 10px; position: relative; }
+.cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  background: #ff4081;
+  color: #fff;
+  font-size: 11px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  box-shadow: 0 2px 6px rgba(255, 64, 129, 0.4);
+}
+.cart-total { color: #ff4081; font-weight: bold; font-size: 17px; }
+.submit-btn {
+  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
+  color: #fff;
+  padding: 12px 28px;
+  border-radius: 25px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 107, 157, 0.35);
+  transition: transform 0.15s;
+}
+.submit-btn:active { transform: scale(0.95); }
+.submit-btn.disabled { background: #eee; color: #aaa; box-shadow: none; }
+
+.modal-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100;
+  display: none;
+}
+.modal {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px;
+  z-index: 101;
+  max-height: 75vh;
+  display: none;
+  flex-direction: column;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+.modal-list { flex: 1; overflow-y: auto; }
+.modal-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #fdf0f5;
+}
+.modal-emoji { font-size: 22px; margin-right: 12px; }
+.modal-name { flex: 1; font-size: 14px; color: #555; }
+.modal-count { font-size: 13px; color: #999; margin-right: 15px; }
+.modal-price { color: #ff4081; font-weight: bold; }
+.modal-footer { display: flex; gap: 12px; margin-top: 20px; }
+.modal-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 25px;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+}
+.btn-cancel { background: #f5f5f5; color: #666; }
+.btn-confirm { background: linear-gradient(135deg, #ff6b9d, #ff8fb3); color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <h1>🍬 零食小铺</h1>
+  <p>选你想吃的，发给他就好啦～</p>
+</div>
+
+<div class="categories" id="categories"></div>
+<div class="snack-list" id="snackList"></div>
+
+<div class="bottom-bar">
+  <div class="cart-left">
+    <div class="cart-icon">
+      🛒
+      <div class="cart-badge" id="cartBadge" style="display:none">0</div>
+    </div>
+    <div class="cart-total" id="cartTotal">¥0.0</div>
+  </div>
+  <button class="submit-btn disabled" id="submitBtn" onclick="showConfirm()">生成订单</button>
+</div>
+
+<!-- 确认弹窗 -->
+<div class="modal-mask" id="modalMask" onclick="hideModal()"></div>
+<div class="modal" id="modal">
+  <div class="modal-title">确认订单</div>
+  <div class="modal-list" id="modalList"></div>
+  <div class="modal-footer">
+    <button class="modal-btn btn-cancel" onclick="hideModal()">再想想</button>
+    <button class="modal-btn btn-confirm" onclick="submitOrder()">确认生成</button>
+  </div>
+</div>
+
+<script>
+const snacks = [
+  { id: 101, name: '薯片（原味）', desc: '嘎吱脆，经典原味', price: 6.5, emoji: '🥔', cat: 2 },
+  { id: 102, name: '薯片（番茄味）', desc: '酸甜可口，女生最爱', price: 6.5, emoji: '🍅', cat: 2 },
+  { id: 103, name: '薯条三兄弟', desc: '北海道网红，奶香浓郁', price: 15, emoji: '🍟', cat: 2 },
+  { id: 104, name: '虾条', desc: '鲜香虾味，一口一根', price: 4, emoji: '🦐', cat: 2 },
+  { id: 105, name: '山药脆片', desc: '咸蛋黄味，咔嚓脆', price: 8, emoji: '🍠', cat: 2 },
+  { id: 106, name: '魔芋爽', desc: '酸辣Q弹，低卡解馋', price: 3, emoji: '🌶️', cat: 2 },
+  { id: 107, name: '风吃海带', desc: '香辣脆爽，越吃越上头', price: 4, emoji: '🌿', cat: 2 },
+  { id: 108, name: '藤椒辣条', desc: '麻麻辣辣，劲爽过瘾', price: 5, emoji: '🌶️', cat: 2 },
+  { id: 109, name: '周氏香油条', desc: '怀旧味道，咸香有嚼劲', price: 6, emoji: '🥖', cat: 2 },
+  { id: 110, name: '长沙魔芋干', desc: '有肉感，湖南香辣味', price: 6, emoji: '🌶️', cat: 2 },
+  { id: 111, name: '麻辣王子辣条', desc: '吃完嘴巴麻麻的，越吃越馋', price: 5, emoji: '🔥', cat: 2 },
+  { id: 112, name: '一根筋辣条', desc: '独立包装，甜辣有嚼劲', price: 4, emoji: '🥢', cat: 2 },
+  { id: 201, name: '德芙牛奶巧克力', desc: '丝滑顺口，治愈系', price: 12, emoji: '🍫', cat: 3 },
+  { id: 202, name: '白桃硬糖', desc: '日系白桃味，少女心', price: 8, emoji: '🍬', cat: 3 },
+  { id: 203, name: 'UHA 葡萄软糖', desc: '爆浆口感，像吃真葡萄', price: 10, emoji: '🍇', cat: 3 },
+  { id: 204, name: '抹茶生巧', desc: '日式抹茶，入口即化', price: 28, emoji: '🍵', cat: 3 },
+  { id: 205, name: '爆浆草莓软糖', desc: '草莓味，里面是果酱', price: 9, emoji: '🍓', cat: 3 },
+  { id: 206, name: '冻干棉花糖', desc: '酥松口感，入口即化', price: 10, emoji: '☁️', cat: 3 },
+  { id: 301, name: '每日坚果', desc: '7种坚果，营养均衡', price: 25, emoji: '🥜', cat: 4 },
+  { id: 302, name: '夏威夷果', desc: '奶香味，送开果器', price: 18, emoji: '🥥', cat: 4 },
+  { id: 303, name: '冻干草莓', desc: '整颗草莓，酸酸甜甜', price: 18, emoji: '🍓', cat: 4 },
+  { id: 304, name: '芒果干', desc: '泰国芒果，厚实有嚼劲', price: 14, emoji: '🥭', cat: 4 },
+  { id: 305, name: '开心果', desc: '自然开口，原味', price: 22, emoji: '🥑', cat: 4 },
+  { id: 306, name: '烤奶皮', desc: '新疆特产，奶香味浓', price: 12, emoji: '🥛', cat: 4 },
+  { id: 307, name: '冻干榴莲', desc: '金枕头榴莲，酥脆香甜', price: 25, emoji: '🍯', cat: 4 },
+  { id: 401, name: '猪肉脯', desc: '靖江特产，蜜汁味', price: 15, emoji: '🥓', cat: 5 },
+  { id: 402, name: '虎皮凤爪', desc: '一嗦脱骨，香辣味', price: 18, emoji: '🍗', cat: 5 },
+  { id: 403, name: '奥尔良鸡腿', desc: '真空包装，开袋即食', price: 8, emoji: '🍗', cat: 5 },
+  { id: 404, name: '台式烤肠', desc: '原味/黑胡椒，Q弹', price: 6, emoji: '🌭', cat: 5 },
+  { id: 405, name: '柠檬鸡爪', desc: '酸辣开胃，无骨', price: 20, emoji: '🍋', cat: 5 },
+  { id: 406, name: '甜辣鸭架', desc: '蜜汁甜辣，越啃越香', price: 12, emoji: '🦆', cat: 5 },
+  { id: 407, name: '鸭翅中', desc: '香辣入味，肉质紧实', price: 15, emoji: '🦆', cat: 5 },
+  { id: 408, name: '溏心卤蛋', desc: '流心蛋黄，鲜香味美', price: 5, emoji: '🥚', cat: 5 },
+  { id: 409, name: '山椒嫩笋尖', desc: '酸辣脆爽，低卡开胃', price: 8, emoji: '🎋', cat: 5 },
+  { id: 410, name: '爆汁鸡胸肉肠', desc: '低卡高蛋白，脆骨口感', price: 7, emoji: '🌭', cat: 5 },
+  { id: 411, name: '香辣鸡脖', desc: '粉料满满，越啃越香', price: 10, emoji: '🍗', cat: 5 },
+  { id: 501, name: '奥利奥', desc: '泡牛奶绝配', price: 7, emoji: '🍪', cat: 6 },
+  { id: 502, name: '肉松小贝', desc: '海苔味，爆浆沙拉酱', price: 12, emoji: '🍰', cat: 6 },
+  { id: 503, name: '珍珠奶茶', desc: '经典珍珠，三分糖', price: 12, emoji: '🧋', cat: 6 },
+  { id: 504, name: '杨枝甘露', desc: '芒果+西柚，清爽', price: 15, emoji: '🥭', cat: 6 },
+  { id: 505, name: '芋泥波波奶茶', desc: '手捣芋泥，糯叽叽', price: 14, emoji: '🍠', cat: 6 },
+  { id: 506, name: '蛋皮吐司', desc: '蛋皮卷着吐司，奶香味', price: 10, emoji: '🍞', cat: 6 },
+  { id: 507, name: '巴斯克蛋糕', desc: '半熟芝士，咸甜浓郁', price: 15, emoji: '🧀', cat: 6 },
+  { id: 508, name: '梅干菜烧饼', desc: '薄脆多层，咸香酥脆', price: 8, emoji: '🥮', cat: 6 },
+  { id: 509, name: '芋泥饼', desc: '皮薄馅足，糯叽叽', price: 9, emoji: '🫓', cat: 6 },
+  { id: 510, name: '红豆抹茶酥', desc: '日式抹茶，配红豆馅', price: 12, emoji: '🍵', cat: 6 },
+  { id: 511, name: '乳酪芋泥糕', desc: '纯可可脂，奶香浓郁', price: 15, emoji: '🧀', cat: 6 },
+  { id: 512, name: '豆乳蛋白卷', desc: '豆浆香味，酥脆夹心', price: 8, emoji: '🥛', cat: 6 },
+  { id: 513, name: '青瓜茉莉椰子水', desc: '清爽解腻，低卡饮品', price: 10, emoji: '🥥', cat: 6 },
+  { id: 514, name: '鲜奶脆', desc: '奶香味浓，健康小饼干', price: 9, emoji: '🍪', cat: 6 }
+]
+
+const categories = [
+  { id: 1, name: '全部' },
+  { id: 2, name: '膨化食品' },
+  { id: 3, name: '糖果巧克力' },
+  { id: 4, name: '坚果炒货' },
+  { id: 5, name: '肉干肉脯' },
+  { id: 6, name: '饼干饮品' }
+]
+
+let activeCat = 1
+let cart = {}
+
+function renderCategories() {
+  const el = document.getElementById('categories')
+  el.innerHTML = categories.map(c => 
+    `<div class="cat-tab ${activeCat === c.id ? 'active' : ''}" onclick="selectCat(${c.id})">${c.name}</div>`
+  ).join('')
+}
+
+function selectCat(id) {
+  activeCat = id
+  renderCategories()
+  renderSnacks()
+}
+
+function renderSnacks() {
+  let list = activeCat === 1 ? snacks : snacks.filter(s => s.cat === activeCat)
+  list = list.map(s => ({ ...s, count: cart[s.id] || 0 }))
+  
+  const el = document.getElementById('snackList')
+  el.innerHTML = list.map(s => `
+    <div class="snack-item">
+      <div class="snack-emoji">${s.emoji}</div>
+      <div class="snack-info">
+        <div class="snack-name">${s.name}</div>
+        <div class="snack-desc">${s.desc}</div>
+        <div class="snack-price">¥${s.price}</div>
+      </div>
+      <div class="snack-actions">
+        ${s.count > 0 ? `<div class="minus-btn" onclick="decrease(${s.id})">−</div>` : ''}
+        ${s.count > 0 ? `<div class="count">${s.count}</div>` : ''}
+        <div class="plus-btn" onclick="increase(${s.id})">＋</div>
+      </div>
+    </div>
+  `).join('')
+  
+  updateCart()
+}
+
+function increase(id) {
+  cart[id] = (cart[id] || 0) + 1
+  renderSnacks()
+}
+
+function decrease(id) {
+  cart[id] = (cart[id] || 0) - 1
+  if (cart[id] <= 0) delete cart[id]
+  renderSnacks()
+}
+
+function updateCart() {
+  let count = 0, total = 0
+  Object.keys(cart).forEach(id => {
+    const snack = snacks.find(s => s.id == id)
+    if (snack) {
+      count += cart[id]
+      total += snack.price * cart[id]
+    }
+  })
+  
+  document.getElementById('cartBadge').style.display = count > 0 ? 'flex' : 'none'
+  document.getElementById('cartBadge').textContent = count
+  document.getElementById('cartTotal').textContent = '¥' + total.toFixed(1)
+  
+  const btn = document.getElementById('submitBtn')
+  if (count > 0) {
+    btn.classList.remove('disabled')
+  } else {
+    btn.classList.add('disabled')
+  }
+}
+
+function showConfirm() {
+  let total = 0
+  const items = []
+  
+  Object.keys(cart).forEach(id => {
+    const snack = snacks.find(s => s.id == id)
+    if (snack) {
+      items.push({ ...snack, count: cart[id] })
+      total += snack.price * cart[id]
+    }
+  })
+  
+  document.getElementById('modalList').innerHTML = items.map(item => `
+    <div class="modal-item">
+      <div class="modal-emoji">${item.emoji}</div>
+      <div class="modal-name">${item.name}</div>
+      <div class="modal-count">x${item.count}</div>
+      <div class="modal-price">¥${(item.price * item.count).toFixed(1)}</div>
+    </div>
+  `).join('') + `<div style="text-align:right; padding:15px 0; font-weight:bold; color:#ff4081; font-size:16px;">合计：¥${total.toFixed(1)}</div>`
+  
+  document.getElementById('modalMask').style.display = 'block'
+  document.getElementById('modal').style.display = 'flex'
+}
+
+function hideModal() {
+  document.getElementById('modalMask').style.display = 'none'
+  document.getElementById('modal').style.display = 'none'
+}
+
+function submitOrder() {
+  let total = 0
+  const items = []
+  
+  Object.keys(cart).forEach(id => {
+    const snack = snacks.find(s => s.id == id)
+    if (snack) {
+      items.push({ ...snack, count: cart[id] })
+      total += snack.price * cart[id]
+    }
+  })
+  
+  const now = new Date()
+  const timeStr = now.toLocaleString('zh-CN')
+  
+  const orderData = {
+    time: timeStr,
+    total: total.toFixed(1),
+    items: items.map(i => ({ name: i.name, count: i.count, price: i.price, emoji: i.emoji }))
+  }
+  const encoded = btoa(encodeURIComponent(JSON.stringify(orderData)))
+  const shareUrl = `${window.location.origin}${window.location.pathname.replace('user.html', 'admin.html')}?order=${encoded}`
+  
+  document.querySelector('.modal-title').textContent = '订单生成成功！'
+  document.getElementById('modalList').innerHTML = `
+    <div style="text-align:center; padding: 30px 0;">
+      <div style="font-size: 60px; margin-bottom: 20px;">🎁</div>
+      <div style="font-size: 15px; color: #666; margin-bottom: 25px; line-height: 1.6;">
+        把下面这个链接发给他<br>他打开就能看到你选的零食啦
+      </div>
+      <div style="background: #fdf0f5; padding: 15px; border-radius: 10px; word-break: break-all; font-size: 12px; color: #555; margin-bottom: 20px; line-height: 1.5;">
+        ${shareUrl}
+      </div>
+      <button onclick="copyShareLink()" style="background: linear-gradient(135deg, #ff6b9d, #ff8fb3); color: #fff; border: none; padding: 12px 35px; border-radius: 25px; font-size: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.35);">
+        复制链接，发给他
+      </button>
+    </div>
+  `
+  document.querySelector('.modal-footer').style.display = 'none'
+  
+  cart = {}
+  renderSnacks()
+}
+
+function copyShareLink() {
+  const text = document.querySelector('.modal-list div:nth-child(3)').textContent
+  navigator.clipboard.writeText(text).then(() => {
+    alert('链接已复制！快去发给他吧～')
+    hideModal()
+    document.querySelector('.modal-footer').style.display = 'flex'
+    document.querySelector('.modal-title').textContent = '确认订单'
+  })
+}
+
+renderCategories()
+renderSnacks()
+</script>
+</body>
+</html>

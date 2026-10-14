@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>订单管理 - 零食小铺</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #fdf2f6;
+  padding-bottom: 40px;
+}
+
+.top-nav {
+  background: linear-gradient(135deg, #ff8fb3, #ffa8c5);
+  color: #fff;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(255, 107, 157, 0.2);
+}
+.top-nav h1 { font-size: 20px; font-weight: bold; }
+.top-nav p { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+
+.section-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #666;
+  margin: 20px 0 12px 5px;
+}
+
+.order-list { padding: 0 15px; }
+.order-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px rgba(255, 107, 157, 0.08);
+}
+.order-card.latest {
+  border: 2px solid #ff8fb3;
+  box-shadow: 0 4px 15px rgba(255, 107, 157, 0.15);
+}
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #fdf0f5;
+  margin-bottom: 12px;
+}
+.order-time { font-size: 13px; color: #888; }
+.order-actions { display: flex; gap: 8px; align-items: center; }
+.order-status {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: #fff3e8;
+  color: #ff6700;
+  cursor: pointer;
+}
+.order-status.done {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+.delete-btn {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #ffebee;
+  color: #f44336;
+  border: none;
+  cursor: pointer;
+}
+.order-items { margin-bottom: 12px; }
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 14px;
+  color: #555;
+}
+.order-footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #fdf0f5;
+  font-weight: bold;
+}
+.order-total { color: #ff4081; }
+
+.empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: #999;
+}
+.empty-icon { font-size: 60px; margin-bottom: 15px; }
+
+.back-link {
+  display: block;
+  text-align: center;
+  margin-top: 30px;
+  font-size: 13px;
+  color: #ff6b9d;
+  text-decoration: none;
+}
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <h1>📦 订单管理</h1>
+  <p>她选的零食都在这里啦</p>
+</div>
+
+<div class="order-list" id="orderList"></div>
+
+<a class="back-link" href="index.html">← 去选零食</a>
+
+<script>
+// 从本地加载订单列表
+function loadOrders() {
+  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
+  
+  if (orders.length === 0) {
+    document.getElementById('orderList').innerHTML = `<div class="empty">
+      <div class="empty-icon">📭</div>
+      <div>还没有订单哦</div>
+      <div style="font-size: 12px; margin-top: 10px; color: #bbb;">她选完后把链接发给你，打开就自动保存到这里</div>
+    </div>`
+    return
+  }
+  
+  // 最新订单是第一个
+  const latest = orders[0]
+  // 历史订单是剩下的
+  const history = orders.slice(1)
+  
+  let html = `
+    <div class="section-title">🌟 最新订单</div>
+    <div class="order-card latest">
+      <div class="order-header">
+        <div class="order-time">${latest.time}</div>
+        <div class="order-actions">
+          <div class="order-status ${latest.done ? 'done' : ''}" onclick="toggleDone(0)">${latest.done ? '✓ 已买' : '待买'}</div>
+          <button class="delete-btn" onclick="deleteOrder(0)">删除</button>
+        </div>
+      </div>
+      <div class="order-items">
+        ${latest.items.map(item => `
+          <div class="order-item">
+            <span>${item.emoji} ${item.name} x${item.count}</span>
+            <span>¥${(item.price * item.count).toFixed(1)}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="order-footer">
+        <span>合计</span>
+        <span class="order-total">¥${latest.total}</span>
+      </div>
+    </div>
+  `
+  
+  if (history.length > 0) {
+    html += `<div class="section-title">📚 历史订单（${history.length}个）</div>`
+    history.forEach((order, index) => {
+      const realIndex = index + 1
+      html += `
+        <div class="order-card" style="opacity: ${order.done ? '0.7' : '1'};">
+          <div class="order-header">
+            <div class="order-time">${order.time}</div>
+            <div class="order-actions">
+              <div class="order-status ${order.done ? 'done' : ''}" onclick="toggleDone(${realIndex})">${order.done ? '✓ 已买' : '待买'}</div>
+              <button class="delete-btn" onclick="deleteOrder(${realIndex})">删除</button>
+            </div>
+          </div>
+          <div class="order-items">
+            ${order.items.map(item => `
+              <div class="order-item">
+                <span>${item.emoji} ${item.name} x${item.count}</span>
+                <span>¥${(item.price * item.count).toFixed(1)}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="order-footer">
+            <span>合计</span>
+            <span class="order-total">¥${order.total}</span>
+          </div>
+        </div>
+      `
+    })
+  }
+  
+  document.getElementById('orderList').innerHTML = html
+}
+
+function toggleDone(index) {
+  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
+  orders[index].done = !orders[index].done
+  localStorage.setItem('orders', JSON.stringify(orders))
+  loadOrders()
+}
+
+function deleteOrder(index) {
+  if (!confirm('确定删除这个订单吗？')) return
+  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
+  orders.splice(index, 1)
+  localStorage.setItem('orders', JSON.stringify(orders))
+  loadOrders()
+}
+
+// 如果 URL 里有订单参数，自动保存
+function checkUrlOrder() {
+  const params = new URLSearchParams(window.location.search)
+  const orderStr = params.get('order')
+  if (orderStr) {
+    try {
+      const order = JSON.parse(decodeURIComponent(atob(orderStr)))
+      const orders = JSON.parse(localStorage.getItem('orders') || '[]')
+      const exists = orders.some(o => o.time === order.time)
+      if (!exists) {
+        orders.unshift(order)
+        localStorage.setItem('orders', JSON.stringify(orders))
+      }
+      setTimeout(() => {
+        alert('收到新订单！🎉')
+      }, 300)
+    } catch(e) {
+      console.error(e)
+    }
+  }
+}
+
+checkUrlOrder()
+loadOrders()
+</script>
+</body>
+</html>
