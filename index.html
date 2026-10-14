@@ -592,17 +592,23 @@ function loadOrders() {
     return
   }
   
-  document.getElementById('orderList').innerHTML = orders.map((order, index) => `
-    <div class="order-card">
+  // 最新订单是第一个
+  const latest = orders[0]
+  // 历史订单是剩下的
+  const history = orders.slice(1)
+  
+  let html = `
+    <div style="font-size: 14px; font-weight: bold; color: #666; margin: 5px 0 12px 5px;">🌟 最新订单</div>
+    <div class="order-card" style="border: 2px solid #ff8fb3; box-shadow: 0 4px 15px rgba(255, 107, 157, 0.15);">
       <div class="order-header">
-        <div class="order-time">${order.time}</div>
+        <div class="order-time">${latest.time}</div>
         <div class="order-actions">
-          <div class="order-status ${order.done ? 'done' : ''}" onclick="toggleDone(${index})" style="cursor:pointer">${order.done ? '✓ 已买' : '待买'}</div>
-          <button class="delete-btn" onclick="deleteOrder(${index})">删除</button>
+          <div class="order-status ${latest.done ? 'done' : ''}" onclick="toggleDone(0)" style="cursor:pointer">${latest.done ? '✓ 已买' : '待买'}</div>
+          <button class="delete-btn" onclick="deleteOrder(0)">删除</button>
         </div>
       </div>
       <div class="order-items">
-        ${order.items.map(item => `
+        ${latest.items.map(item => `
           <div class="order-item">
             <span>${item.emoji} ${item.name} x${item.count}</span>
             <span>¥${(item.price * item.count).toFixed(1)}</span>
@@ -611,10 +617,44 @@ function loadOrders() {
       </div>
       <div class="order-footer">
         <span>合计</span>
-        <span class="order-total">¥${order.total}</span>
+        <span class="order-total">¥${latest.total}</span>
       </div>
     </div>
-  `).join('')
+  `
+  
+  if (history.length > 0) {
+    html += `
+      <div style="font-size: 14px; font-weight: bold; color: #666; margin: 25px 0 12px 5px;">📚 历史订单（${history.length}个）</div>
+    `
+    history.forEach((order, index) => {
+      const realIndex = index + 1
+      html += `
+        <div class="order-card" style="opacity: ${order.done ? '0.7' : '1'};">
+          <div class="order-header">
+            <div class="order-time">${order.time}</div>
+            <div class="order-actions">
+              <div class="order-status ${order.done ? 'done' : ''}" onclick="toggleDone(${realIndex})" style="cursor:pointer">${order.done ? '✓ 已买' : '待买'}</div>
+              <button class="delete-btn" onclick="deleteOrder(${realIndex})">删除</button>
+            </div>
+          </div>
+          <div class="order-items">
+            ${order.items.map(item => `
+              <div class="order-item">
+                <span>${item.emoji} ${item.name} x${item.count}</span>
+                <span>¥${(item.price * item.count).toFixed(1)}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="order-footer">
+            <span>合计</span>
+            <span class="order-total">¥${order.total}</span>
+          </div>
+        </div>
+      `
+    })
+  }
+  
+  document.getElementById('orderList').innerHTML = html
 }
 
 function toggleDone(index) {
