@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>零食小铺</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f5f5f5;
+  padding-bottom: 100px;
+}
+
+.top-nav {
+  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
+  color: #fff;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.top-nav h1 { font-size: 20px; }
+.nav-tabs {
+  display: flex;
+  background: rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 3px;
+}
+.nav-tab {
+  padding: 6px 16px;
+  border-radius: 18px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.nav-tab.active {
+  background: #fff;
+  color: #ff6b9d;
+  font-weight: bold;
+}
+
+.page { display: none; }
+.page.active { display: block; }
+
+.categories {
+  background: #fff;
+  padding: 12px 15px;
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.cat-tab {
+  padding: 6px 14px;
+  border-radius: 16px;
+  background: #f5f5f5;
+  font-size: 13px;
+  color: #666;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.cat-tab.active {
+  background: #ff6b9d;
+  color: #fff;
+}
+
+.snack-list { padding: 12px; }
+.snack-item {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+.snack-emoji {
+  width: 55px;
+  height: 55px;
+  background: #fff5f8;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+.snack-info { flex: 1; }
+.snack-name { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 3px; }
+.snack-desc { font-size: 11px; color: #999; margin-bottom: 6px; }
+.snack-price { color: #ff4081; font-weight: bold; font-size: 16px; }
+
+.snack-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.plus-btn, .minus-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.plus-btn { background: #ff6b9d; color: #fff; }
+.minus-btn { background: #fff; color: #ff6b9d; border: 2px solid #ff6b9d; }
+.count { font-size: 14px; font-weight: bold; min-width: 16px; text-align: center; }
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  height: 60px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+}
+.cart-left { display: flex; align-items: center; }
+.cart-icon { font-size: 24px; margin-right: 8px; position: relative; }
+.cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  background: #ff4081;
+  color: #fff;
+  font-size: 10px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+.cart-total { color: #ff4081; font-weight: bold; font-size: 16px; }
+.submit-btn {
+  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
+  color: #fff;
+  padding: 10px 25px;
+  border-radius: 20px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+.submit-btn.disabled { background: #ddd; color: #999; }
+
+.order-list { padding: 15px; }
+.order-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 12px;
+}
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f5f5f5;
+  margin-bottom: 10px;
+}
+.order-time { font-size: 13px; color: #999; }
+.order-status {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: #fff3e8;
+  color: #ff6700;
+}
+.order-items { margin-bottom: 10px; }
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 14px;
+  color: #333;
+}
+.order-footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid #f5f5f5;
+  font-weight: bold;
+}
+.order-total { color: #ff4081; }
+
+.empty {
+  text-align: center;
+  padding: 80px 0;
+  color: #999;
+}
+.empty-icon { font-size: 60px; margin-bottom: 15px; }
+
+.modal-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100;
+  display: none;
+}
+.modal {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  background: #fff;
+  border-radius: 15px 15px 0 0;
+  padding: 20px;
+  z-index: 101;
+  max-height: 70vh;
+  display: none;
+  flex-direction: column;
+}
+.modal-title {
+  font-size: 17px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 15px;
+}
+.modal-list { flex: 1; overflow-y: auto; }
+.modal-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+.modal-emoji { font-size: 20px; margin-right: 10px; }
+.modal-name { flex: 1; font-size: 14px; }
+.modal-count { font-size: 13px; color: #999; margin-right: 12px; }
+.modal-price { color: #ff4081; font-weight: bold; }
+.modal-footer { display: flex; gap: 10px; margin-top: 15px; }
+.modal-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 20px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+.btn-cancel { background: #f5f5f5; color: #666; }
+.btn-confirm { background: #ff6b9d; color: #fff; }
+
+.loading {
+  text-align: center;
+  padding: 40px 0;
+  color: #999;
+}
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <h1>🍬 零食小铺</h1>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="switchPage('user', this)">我要选零食</div>
+    <div class="nav-tab" onclick="switchPage('admin', this)">管理后台</div>
+  </div>
+</div>
+
+<!-- 用户端页面 -->
+<div class="page active" id="page-user">
+  <div class="categories" id="categories"></div>
+  <div class="snack-list" id="snackList"></div>
+  
+  <div class="bottom-bar">
+    <div class="cart-left">
+      <div class="cart-icon">
+        🛒
+        <div class="cart-badge" id="cartBadge" style="display:none">0</div>
+      </div>
+      <div class="cart-total" id="cartTotal">¥0.0</div>
+    </div>
+    <button class="submit-btn disabled" id="submitBtn" onclick="showConfirm()">提交订单</button>
+  </div>
+</div>
+
+<!-- 管理端页面 -->
+<div class="page" id="page-admin">
+  <div class="loading" id="adminLoading">加载中...</div>
+  <div class="order-list" id="orderList"></div>
+</div>
+
+<!-- 确认弹窗 -->
+<div class="modal-mask" id="modalMask" onclick="hideModal()"></div>
+<div class="modal" id="modal">
+  <div class="modal-title">确认订单</div>
+  <div class="modal-list" id="modalList"></div>
+  <div class="modal-footer">
+    <button class="modal-btn btn-cancel" onclick="hideModal()">再想想</button>
+    <button class="modal-btn btn-confirm" onclick="submitOrder()">确认提交</button>
+  </div>
+</div>
+
+<script>
+// GitHub 配置
+const GITHUB_CONFIG = {
+  owner: 'cjl20070112',
+  repo: 'snack-picker',
+  token: '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'
+}
+
+const snacks = [
+  { id: 101, name: '薯片（原味）', desc: '嘎吱脆，经典原味', price: 6.5, emoji: '🥔', cat: 2 },
+  { id: 102, name: '薯片（番茄味）', desc: '酸甜可口，女生最爱', price: 6.5, emoji: '🍅', cat: 2 },
+  { id: 103, name: '薯条三兄弟', desc: '北海道网红，奶香浓郁', price: 15, emoji: '🍟', cat: 2 },
+  { id: 104, name: '虾条', desc: '鲜香虾味，一口一根', price: 4, emoji: '🦐', cat: 2 },
+  { id: 105, name: '山药脆片', desc: '咸蛋黄味，咔嚓脆', price: 8, emoji: '🍠', cat: 2 },
+  { id: 201, name: '德芙牛奶巧克力', desc: '丝滑顺口，治愈系', price: 12, emoji: '🍫', cat: 3 },
+  { id: 202, name: '白桃硬糖', desc: '日系白桃味，少女心', price: 8, emoji: '🍬', cat: 3 },
+  { id: 203, name: 'UHA 葡萄软糖', desc: '爆浆口感，像吃真葡萄', price: 10, emoji: '🍇', cat: 3 },
+  { id: 204, name: '抹茶生巧', desc: '日式抹茶，入口即化', price: 28, emoji: '🍵', cat: 3 },
+  { id: 205, name: '爆浆草莓软糖', desc: '草莓味，里面是果酱', price: 9, emoji: '🍓', cat: 3 },
+  { id: 301, name: '每日坚果', desc: '7种坚果，营养均衡', price: 25, emoji: '🥜', cat: 4 },
+  { id: 302, name: '夏威夷果', desc: '奶香味，送开果器', price: 18, emoji: '🥥', cat: 4 },
+  { id: 303, name: '冻干草莓', desc: '整颗草莓，酸酸甜甜', price: 18, emoji: '🍓', cat: 4 },
+  { id: 304, name: '芒果干', desc: '泰国芒果，厚实有嚼劲', price: 14, emoji: '🥭', cat: 4 },
+  { id: 305, name: '开心果', desc: '自然开口，原味', price: 22, emoji: '🥑', cat: 4 },
+  { id: 401, name: '猪肉脯', desc: '靖江特产，蜜汁味', price: 15, emoji: '🥓', cat: 5 },
+  { id: 402, name: '虎皮凤爪', desc: '一嗦脱骨，香辣味', price: 18, emoji: '🍗', cat: 5 },
+  { id: 403, name: '奥尔良鸡腿', desc: '真空包装，开袋即食', price: 8, emoji: '🍗', cat: 5 },
+  { id: 404, name: '台式烤肠', desc: '原味/黑胡椒，Q弹', price: 6, emoji: '🌭', cat: 5 },
+  { id: 405, name: '柠檬鸡爪', desc: '酸辣开胃，无骨', price: 20, emoji: '🍋', cat: 5 },
+  { id: 501, name: '奥利奥', desc: '泡牛奶绝配', price: 7, emoji: '🍪', cat: 6 },
+  { id: 502, name: '肉松小贝', desc: '海苔味，爆浆沙拉酱', price: 12, emoji: '🍰', cat: 6 },
+  { id: 503, name: '珍珠奶茶', desc: '经典珍珠，三分糖', price: 12, emoji: '🧋', cat: 6 },
+  { id: 504, name: '杨枝甘露', desc: '芒果+西柚，清爽', price: 15, emoji: '🥭', cat: 6 },
+  { id: 505, name: '芋泥波波奶茶', desc: '手捣芋泥，糯叽叽', price: 14, emoji: '🍠', cat: 6 }
+]
+
+const categories = [
+  { id: 1, name: '全部' },
+  { id: 2, name: '膨化食品' },
+  { id: 3, name: '糖果巧克力' },
+  { id: 4, name: '坚果炒货' },
+  { id: 5, name: '肉干肉脯' },
+  { id: 6, name: '饼干饮品' }
+]
+
+let activeCat = 1
+let cart = {}
+
+function switchPage(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'))
+  document.getElementById('page-' + page).classList.add('active')
+  el.classList.add('active')
+  
+  if (page === 'admin') {
+    loadOrders()
+  }
+}
+
+function renderCategories() {
+  const el = document.getElementById('categories')
+  el.innerHTML = categories.map(c => 
+    `<div class="cat-tab ${activeCat === c.id ? 'active' : ''}" onclick="selectCat(${c.id})">${c.name}</div>`
+  ).join('')
+}
+
+function selectCat(id) {
+  activeCat = id
+  renderCategories()
+  renderSnacks()
+}
+
+function renderSnacks() {
+  let list = activeCat === 1 ? snacks : snacks.filter(s => s.cat === activeCat)
+  list = list.map(s => ({ ...s, count: cart[s.id] || 0 }))
+  
+  const el = document.getElementById('snackList')
+  el.innerHTML = list.map(s => `
+    <div class="snack-item">
+      <div class="snack-emoji">${s.emoji}</div>
+      <div class="snack-info">
+        <div class="snack-name">${s.name}</div>
+        <div class="snack-desc">${s.desc}</div>
+        <div class="snack-price">¥${s.price}</div>
+      </div>
+      <div class="snack-actions">
+        ${s.count > 0 ? `<div class="minus-btn" onclick="decrease(${s.id})">−</div>` : ''}
+        ${s.count > 0 ? `<div class="count">${s.count}</div>` : ''}
+        <div class="plus-btn" onclick="increase(${s.id})">＋</div>
+      </div>
+    </div>
+  `).join('')
+  
+  updateCart()
+}
+
+function increase(id) {
+  cart[id] = (cart[id] || 0) + 1
+  renderSnacks()
+}
+
+function decrease(id) {
+  cart[id] = (cart[id] || 0) - 1
+  if (cart[id] <= 0) delete cart[id]
+  renderSnacks()
+}
+
+function updateCart() {
+  let count = 0, total = 0
+  Object.keys(cart).forEach(id => {
+    const snack = snacks.find(s => s.id == id)
+    if (snack) {
+      count += cart[id]
+      total += snack.price * cart[id]
+    }
+  })
+  
+  document.getElementById('cartBadge').style.display = count > 0 ? 'flex' : 'none'
+  document.getElementById('cartBadge').textContent = count
+  document.getElementById('cartTotal').textContent = '¥' + total.toFixed(1)
+  
+  const btn = document.getElementById('submitBtn')
+  if (count > 0) {
+    btn.classList.remove('disabled')
+  } else {
+    btn.classList.add('disabled')
+  }
+}
+
+function showConfirm() {
+  let total = 0, count = 0
+  const items = []
+  
+  Object.keys(cart).forEach(id => {
+    const snack = snacks.find(s => s.id == id)
+    if (snack) {
+      items.push({ ...snack, count: cart[id] })
+      total += snack.price * cart[id]
+      count += cart[id]
+    }
+  })
+  
+  document.getElementById('modalList').innerHTML = items.map(item => `
+    <div class="modal-item">
+      <div class="modal-emoji">${item.emoji}</div>
+      <div class="modal-name">${item.name}</div>
+      <div class="modal-count">x${item.count}</div>
+      <div class="modal-price">¥${(item.price * item.count).toFixed(1)}</div>
+    </div>
+  `).join('') + `<div style="text-align:right; padding:12px 0; font-weight:bold; color:#ff4081">合计：¥${total.toFixed(1)}</div>`
+  
+  document.getElementById('modalMask').style.display = 'block'
+  document.getElementById('modal').style.display = 'flex'
+}
+
+function hideModal() {
+  document.getElementById('modalMask').style.display = 'none'
+  document.getElementById('modal').style.display = 'none'
+}
+
+// 提交订单到 GitHub Issues
+function submitOrder() {
+  let total = 0
+  const items = []
+  
+  Object.keys(cart).forEach(id => {
+    const snack = snacks.find(s => s.id == id)
+    if (snack) {
+      items.push({ ...snack, count: cart[id] })
+      total += snack.price * cart[id]
+    }
+  })
+  
+  const now = new Date()
+  const timeStr = now.toLocaleString('zh-CN')
+  
+  // 构建 Issue 内容
+  let body = '## 她选的零食清单\n\n'
+  items.forEach(item => {
+    body += `- ${item.emoji} ${item.name} x${item.count} = ¥${(item.price * item.count).toFixed(1)}\n`
+  })
+  body += `\n**合计：¥${total.toFixed(1)}**\n`
+  body += `\n下单时间：${timeStr}`
+  
+  document.querySelector('.btn-confirm').textContent = '提交中...'
+  document.querySelector('.btn-confirm').disabled = true
+  
+  // 调用 GitHub API 创建 Issue
+  fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/issues`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `token ${GITHUB_CONFIG.token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      title: `零食订单 - ${timeStr}`,
+      body: body,
+      labels: ['零食订单']
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.querySelector('.btn-confirm').textContent = '确认提交'
+    document.querySelector('.btn-confirm').disabled = false
+    hideModal()
+    cart = {}
+    renderSnacks()
+    alert('下单成功！他马上就能看到啦～')
+  })
+  .catch(err => {
+    document.querySelector('.btn-confirm').textContent = '确认提交'
+    document.querySelector('.btn-confirm').disabled = false
+    alert('提交失败，请重试')
+    console.error(err)
+  })
+}
+
+// 从 GitHub Issues 加载订单列表
+function loadOrders() {
+  document.getElementById('adminLoading').style.display = 'block'
+  document.getElementById('orderList').innerHTML = ''
+  
+  fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/issues?state=open&creator=${GITHUB_CONFIG.owner}`, {
+    headers: {
+      'Authorization': `token ${GITHUB_CONFIG.token}`,
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  })
+  .then(res => res.json())
+  .then(issues => {
+    document.getElementById('adminLoading').style.display = 'none'
+    
+    if (issues.length === 0) {
+      document.getElementById('orderList').innerHTML = `<div class="empty">
+        <div class="empty-icon">📦</div>
+        <div>还没有订单哦</div>
+      </div>`
+      return
+    }
+    
+    // 只显示零食订单（有标签的）
+    const snackOrders = issues.filter(issue => 
+      issue.labels.some(label => label.name === '零食订单')
+    )
+    
+    if (snackOrders.length === 0) {
+      document.getElementById('orderList').innerHTML = `<div class="empty">
+        <div class="empty-icon">📦</div>
+        <div>还没有订单哦</div>
+      </div>`
+      return
+    }
+    
+    document.getElementById('orderList').innerHTML = snackOrders.map(order => `
+      <div class="order-card">
+        <div class="order-header">
+          <div class="order-time">${order.title.replace('零食订单 - ', '')}</div>
+          <div class="order-status">待配送</div>
+        </div>
+        <div class="order-items">
+          ${order.body.split('\n').filter(line => line.startsWith('- ')).map(line => {
+            const parts = line.replace('- ', '').split(' = ')
+            return `<div class="order-item">
+              <span>${parts[0]}</span>
+              <span>${parts[1] || ''}</span>
+            </div>`
+          }).join('')}
+        </div>
+        <div class="order-footer">
+          <span>合计</span>
+          <span class="order-total">${(order.body.match(/合计：¥(\d+\.\d+)/) || [])[1] ? '¥' + order.body.match(/合计：¥(\d+\.\d+)/)[1] : ''}</span>
+        </div>
+      </div>
+    `).join('')
+  })
+  .catch(err => {
+    document.getElementById('adminLoading').style.display = 'none'
+    document.getElementById('orderList').innerHTML = `<div class="empty">
+      <div class="empty-icon">❌</div>
+      <div>加载失败，请重试</div>
+    </div>`
+    console.error(err)
+  })
+}
+
+// 初始化
+renderCategories()
+renderSnacks()
+</script>
+</body>
+</html>
