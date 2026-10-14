@@ -585,15 +585,17 @@ function checkUrlOrder() {
       const order = JSON.parse(decodeURIComponent(atob(orderStr)))
       // 保存到本地
       const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-      orders.unshift(order)
-      localStorage.setItem('orders', JSON.stringify(orders))
+      // 避免重复保存
+      const exists = orders.some(o => o.time === order.time)
+      if (!exists) {
+        orders.unshift(order)
+        localStorage.setItem('orders', JSON.stringify(orders))
+      }
       // 显示在管理后台
       switchPage('admin', document.querySelectorAll('.nav-tab')[1])
       setTimeout(() => {
         alert('收到新订单！🎉')
       }, 300)
-      // 清空 URL 参数
-      history.replaceState(null, '', window.location.pathname)
     } catch(e) {
       console.error(e)
     }
