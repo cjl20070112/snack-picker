@@ -21,6 +21,21 @@ body {
 .top-nav h1 { font-size: 20px; font-weight: bold; }
 .top-nav p { font-size: 13px; opacity: 0.9; margin-top: 4px; }
 
+.new-order-banner {
+  background: linear-gradient(135deg, #ff4081, #ff6b9d);
+  color: #fff;
+  padding: 12px 20px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  animation: pulse 2s infinite;
+  cursor: pointer;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
 .section-title {
   font-size: 14px;
   font-weight: bold;
@@ -112,6 +127,10 @@ body {
   <p>她选的零食都在这里啦</p>
 </div>
 
+<div class="new-order-banner" id="newOrderBanner" style="display:none" onclick="dismissBanner()">
+  🎉 你有新订单啦！点击查看
+</div>
+
 <div class="order-list" id="orderList"></div>
 
 <a class="back-link" href="index.html">← 去选零食</a>
@@ -128,6 +147,13 @@ function loadOrders() {
       <div style="font-size: 12px; margin-top: 10px; color: #bbb;">她选完后把链接发给你，打开就自动保存到这里</div>
     </div>`
     return
+  }
+  
+  // 检测新订单
+  const lastViewed = localStorage.getItem('lastViewedOrderTime')
+  const latestTime = orders[0].time
+  if (latestTime !== lastViewed) {
+    document.getElementById('newOrderBanner').style.display = 'block'
   }
   
   // 最新订单是第一个
@@ -206,6 +232,14 @@ function deleteOrder(index) {
   orders.splice(index, 1)
   localStorage.setItem('orders', JSON.stringify(orders))
   loadOrders()
+}
+
+function dismissBanner() {
+  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
+  if (orders.length > 0) {
+    localStorage.setItem('lastViewedOrderTime', orders[0].time)
+  }
+  document.getElementById('newOrderBanner').style.display = 'none'
 }
 
 // 如果 URL 里有订单参数，自动保存
