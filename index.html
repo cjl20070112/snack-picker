@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>零食小铺</title>
-<script src="https://imgcache.qq.com/qcloud/cloudbase-js-sdk/2.7.6/cloudbase.full.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -22,41 +21,6 @@ body {
 }
 .top-nav h1 { font-size: 22px; font-weight: bold; }
 .top-nav p { font-size: 13px; opacity: 0.9; margin-top: 4px; }
-
-/* 登录页 */
-.login-page {
-  text-align: center;
-  padding: 80px 30px;
-}
-.login-icon { font-size: 80px; margin-bottom: 20px; }
-.login-title { font-size: 22px; font-weight: bold; color: #333; margin-bottom: 10px; }
-.login-desc { font-size: 14px; color: #999; margin-bottom: 30px; }
-.login-input {
-  width: 100%;
-  max-width: 300px;
-  padding: 14px 20px;
-  border: 2px solid #ffd0dd;
-  border-radius: 25px;
-  font-size: 15px;
-  text-align: center;
-  margin-bottom: 15px;
-  outline: none;
-}
-.login-input:focus { border-color: #ff6b9d; }
-.login-btn {
-  width: 100%;
-  max-width: 300px;
-  padding: 14px;
-  background: linear-gradient(135deg, #ff6b9d, #ff8fb3);
-  color: #fff;
-  border: none;
-  border-radius: 25px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(255, 107, 157, 0.35);
-}
-.login-btn:active { transform: scale(0.98); }
 
 .categories {
   background: #fff;
@@ -236,24 +200,13 @@ body {
 
 <div class="top-nav">
   <h1>🍬 零食小铺</h1>
-  <p id="topDesc">选你喜欢的，他给你买～</p>
+  <p>选你喜欢的，他给你买～</p>
 </div>
 
-<!-- 登录页 -->
-<div class="login-page" id="loginPage" style="display:none">
-  <div class="login-icon">🍬</div>
-  <div class="login-title">欢迎来到零食小铺</div>
-  <div class="login-desc">输入你的昵称，开始选零食吧</div>
-  <input type="text" class="login-input" id="nameInput" placeholder="你的昵称" maxlength="10">
-  <button class="login-btn" onclick="doLogin()">开始选零食</button>
-</div>
+<div class="categories" id="categories"></div>
+<div class="snack-list" id="snackList"></div>
 
-<div id="mainPage" style="display:none">
-  <div class="categories" id="categories"></div>
-  <div class="snack-list" id="snackList"></div>
-</div>
-
-<div class="bottom-bar" id="bottomBar" style="display:none">
+<div class="bottom-bar">
   <div class="cart-left">
     <div class="cart-icon">
       🛒
@@ -275,13 +228,6 @@ body {
 </div>
 
 <script>
-// 初始化 CloudBase
-const app = cloudbase.init({
-  env: 'snack-d8g93zkjucee67b7e'
-})
-const auth = app.auth()
-const db = app.database()
-
 const snacks = [
   { id: 101, name: '薯片（原味）', desc: '嘎吱脆，经典原味', price: 6.5, emoji: '🥔', cat: 2 },
   { id: 102, name: '薯片（番茄味）', desc: '酸甜可口，女生最爱', price: 6.5, emoji: '🍅', cat: 2 },
@@ -346,7 +292,6 @@ const categories = [
 
 let activeCat = 1
 let cart = {}
-let userName = ''
 
 function renderCategories() {
   const el = document.getElementById('categories')
@@ -449,90 +394,59 @@ function hideModal() {
   document.getElementById('modal').style.display = 'none'
 }
 
-// 登录
-async function doLogin() {
-  const name = document.getElementById('nameInput').value.trim()
-  if (!name) {
-    alert('请输入昵称')
-    return
-  }
-  userName = name
-  localStorage.setItem('snackUserName', name)
-  
-  // 匿名登录
-  try {
-    await auth.signInAnonymously()
-    showMain()
-  } catch(e) {
-    console.error('登录失败:', e)
-    alert('网络有点问题，再试试')
-  }
-}
-
-function showMain() {
-  document.getElementById('loginPage').style.display = 'none'
-  document.getElementById('mainPage').style.display = 'block'
-  document.getElementById('bottomBar').style.display = 'flex'
-  document.getElementById('topDesc').textContent = `${userName}，选你喜欢的吧～`
-}
-
-// 提交订单到云端
-async function submitOrder() {
+// 生成分享链接
+function submitOrder() {
   let total = 0
   const items = []
   
   Object.keys(cart).forEach(id => {
     const snack = snacks.find(s => s.id == id)
     if (snack) {
-      items.push({ name: snack.name, count: cart[id], price: snack.price, emoji: snack.emoji })
+      items.push({ ...snack, count: cart[id] })
       total += snack.price * cart[id]
     }
   })
   
-  document.querySelector('.btn-confirm').textContent = '提交中...'
-  document.querySelector('.btn-confirm').disabled = true
+  const now = new Date()
+  const timeStr = now.toLocaleString('zh-CN')
   
-  try {
-    await db.collection('orders').add({
-      userName: userName,
-      items: items,
-      total: total.toFixed(1),
-      createTime: db.serverDate(),
-      status: 'pending'
-    })
-    
-    document.querySelector('.btn-confirm').textContent = '就这些啦'
-    document.querySelector('.btn-confirm').disabled = false
-    hideModal()
-    cart = {}
-    renderSnacks()
-    alert('提交成功！他马上就能看到啦～')
-  } catch(e) {
-    console.error('提交失败:', e)
-    document.querySelector('.btn-confirm').textContent = '就这些啦'
-    document.querySelector('.btn-confirm').disabled = false
-    alert('提交失败，再试试')
+  const orderData = {
+    time: timeStr,
+    total: total.toFixed(1),
+    items: items.map(i => ({ name: i.name, count: i.count, price: i.price, emoji: i.emoji }))
   }
-}
-
-// 初始化
-window.onload = function() {
-  const savedName = localStorage.getItem('snackUserName')
-  if (savedName) {
-    userName = savedName
-    // 自动登录
-    auth.signInAnonymously().then(() => {
-      showMain()
-    }).catch(() => {
-      document.getElementById('loginPage').style.display = 'block'
-    })
-  } else {
-    document.getElementById('loginPage').style.display = 'block'
-  }
+  const encoded = btoa(encodeURIComponent(JSON.stringify(orderData)))
+  const shareUrl = `${window.location.origin}${window.location.pathname.replace('index.html', 'admin.html')}?order=${encoded}`
   
-  renderCategories()
+  document.getElementById('modalTitle').textContent = '清单生成好啦！'
+  document.getElementById('modalList').innerHTML = `
+    <div style="text-align:center; padding: 20px 0;">
+      <div style="font-size: 52px; margin-bottom: 15px;">🎁</div>
+      <div style="font-size: 15px; color: #666; margin-bottom: 20px; line-height: 1.6;">
+        点下面按钮复制链接，发给对方<br>他打开就能看到你选的零食啦
+      </div>
+      <button onclick="copyShareLink('${shareUrl}')" style="background: linear-gradient(135deg, #ff6b9d, #ff8fb3); color: #fff; border: none; padding: 12px 35px; border-radius: 25px; font-size: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.35);">
+        复制链接发给他
+      </button>
+    </div>
+  `
+  document.getElementById('modalFooter').style.display = 'none'
+  
+  cart = {}
   renderSnacks()
 }
+
+function copyShareLink(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    alert('链接已复制，快发给他吧～')
+    hideModal()
+    document.getElementById('modalFooter').style.display = 'flex'
+    document.getElementById('modalTitle').textContent = '确认清单'
+  })
+}
+
+renderCategories()
+renderSnacks()
 </script>
 </body>
 </html>
