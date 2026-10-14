@@ -522,9 +522,8 @@ function loadOrders() {
   document.getElementById('adminLoading').style.display = 'block'
   document.getElementById('orderList').innerHTML = ''
   
-  fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/issues?state=open&creator=${GITHUB_CONFIG.owner}`, {
+  fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/issues?state=open`, {
     headers: {
-      'Authorization': `token ${GITHUB_CONFIG.token}`,
       'Accept': 'application/vnd.github.v3+json'
     }
   })
