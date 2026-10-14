@@ -459,7 +459,7 @@ function hideModal() {
   document.getElementById('modal').style.display = 'none'
 }
 
-// 提交订单到 GitHub Issues
+// 生成分享链接
 function submitOrder() {
   let total = 0
   const items = []
@@ -475,118 +475,116 @@ function submitOrder() {
   const now = new Date()
   const timeStr = now.toLocaleString('zh-CN')
   
-  // 构建 Issue 内容
-  let body = '## 她选的零食清单\n\n'
-  items.forEach(item => {
-    body += `- ${item.emoji} ${item.name} x${item.count} = ¥${(item.price * item.count).toFixed(1)}\n`
-  })
-  body += `\n**合计：¥${total.toFixed(1)}**\n`
-  body += `\n下单时间：${timeStr}`
+  // 把订单数据编码成 URL
+  const orderData = {
+    time: timeStr,
+    total: total.toFixed(1),
+    items: items.map(i => ({ name: i.name, count: i.count, price: i.price, emoji: i.emoji }))
+  }
+  const encoded = btoa(encodeURIComponent(JSON.stringify(orderData)))
+  const shareUrl = `${window.location.origin}${window.location.pathname}?order=${encoded}`
   
-  document.querySelector('.btn-confirm').textContent = '提交中...'
-  document.querySelector('.btn-confirm').disabled = true
+  // 显示分享弹窗
+  document.querySelector('.modal-title').textContent = '订单已生成！'
+  document.getElementById('modalList').innerHTML = `
+    <div style="text-align:center; padding: 20px 0;">
+      <div style="font-size: 48px; margin-bottom: 15px;">🎁</div>
+      <div style="font-size: 15px; color: #666; margin-bottom: 20px;">
+        把下面这个链接发给对方，他打开就能看到你选的零食啦
+      </div>
+      <div style="background: #f5f5f5; padding: 12px; border-radius: 8px; word-break: break-all; font-size: 12px; color: #333; margin-bottom: 15px;">
+        ${shareUrl}
+      </div>
+      <button onclick="copyShareLink('${shareUrl}')" style="background: #ff6b9d; color: #fff; border: none; padding: 10px 30px; border-radius: 20px; font-size: 14px; cursor: pointer;">
+        复制链接
+      </button>
+    </div>
+  `
+  document.querySelector('.modal-footer').style.display = 'none'
   
-  // 调用 GitHub API 创建 Issue
-  fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/issues`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `token ${GITHUB_CONFIG.token}`,
-      'Accept': 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      title: `零食订单 - ${timeStr}`,
-      body: body,
-      labels: ['零食订单']
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
-    document.querySelector('.btn-confirm').textContent = '确认提交'
-    document.querySelector('.btn-confirm').disabled = false
+  // 保存订单到本地
+  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
+  orders.unshift(orderData)
+  localStorage.setItem('orders', JSON.stringify(orders))
+  
+  cart = {}
+  renderSnacks()
+}
+
+function copyShareLink(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    alert('链接已复制，快发给对方吧～')
     hideModal()
-    cart = {}
-    renderSnacks()
-    alert('下单成功！他马上就能看到啦～')
-  })
-  .catch(err => {
-    document.querySelector('.btn-confirm').textContent = '确认提交'
-    document.querySelector('.btn-confirm').disabled = false
-    alert('提交失败，请重试')
-    console.error(err)
+    document.querySelector('.modal-footer').style.display = 'flex'
+    document.querySelector('.modal-title').textContent = '确认订单'
   })
 }
 
-// 从 GitHub Issues 加载订单列表
+// 从本地加载订单列表
 function loadOrders() {
-  document.getElementById('adminLoading').style.display = 'block'
-  document.getElementById('orderList').innerHTML = ''
+  document.getElementById('adminLoading').style.display = 'none'
   
-  fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/issues?state=open`, {
-    headers: {
-      'Accept': 'application/vnd.github.v3+json'
-    }
-  })
-  .then(res => res.json())
-  .then(issues => {
-    document.getElementById('adminLoading').style.display = 'none'
-    
-    if (issues.length === 0) {
-      document.getElementById('orderList').innerHTML = `<div class="empty">
-        <div class="empty-icon">📦</div>
-        <div>还没有订单哦</div>
-      </div>`
-      return
-    }
-    
-    // 只显示零食订单（有标签的）
-    const snackOrders = issues.filter(issue => 
-      issue.labels.some(label => label.name === '零食订单')
-    )
-    
-    if (snackOrders.length === 0) {
-      document.getElementById('orderList').innerHTML = `<div class="empty">
-        <div class="empty-icon">📦</div>
-        <div>还没有订单哦</div>
-      </div>`
-      return
-    }
-    
-    document.getElementById('orderList').innerHTML = snackOrders.map(order => `
-      <div class="order-card">
-        <div class="order-header">
-          <div class="order-time">${order.title.replace('零食订单 - ', '')}</div>
-          <div class="order-status">待配送</div>
-        </div>
-        <div class="order-items">
-          ${order.body.split('\n').filter(line => line.startsWith('- ')).map(line => {
-            const parts = line.replace('- ', '').split(' = ')
-            return `<div class="order-item">
-              <span>${parts[0]}</span>
-              <span>${parts[1] || ''}</span>
-            </div>`
-          }).join('')}
-        </div>
-        <div class="order-footer">
-          <span>合计</span>
-          <span class="order-total">${(order.body.match(/合计：¥(\d+\.\d+)/) || [])[1] ? '¥' + order.body.match(/合计：¥(\d+\.\d+)/)[1] : ''}</span>
-        </div>
-      </div>
-    `).join('')
-  })
-  .catch(err => {
-    document.getElementById('adminLoading').style.display = 'none'
+  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
+  
+  if (orders.length === 0) {
     document.getElementById('orderList').innerHTML = `<div class="empty">
-      <div class="empty-icon">❌</div>
-      <div>加载失败，请重试</div>
+      <div class="empty-icon">📦</div>
+      <div>还没有订单哦</div>
+      <div style="font-size: 12px; margin-top: 10px; color: #bbb;">她选完后把链接发给你，你打开就能看到啦</div>
     </div>`
-    console.error(err)
-  })
+    return
+  }
+  
+  document.getElementById('orderList').innerHTML = orders.map(order => `
+    <div class="order-card">
+      <div class="order-header">
+        <div class="order-time">${order.time}</div>
+        <div class="order-status">待配送</div>
+      </div>
+      <div class="order-items">
+        ${order.items.map(item => `
+          <div class="order-item">
+            <span>${item.emoji} ${item.name} x${item.count}</span>
+            <span>¥${(item.price * item.count).toFixed(1)}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="order-footer">
+        <span>合计</span>
+        <span class="order-total">¥${order.total}</span>
+      </div>
+    </div>
+  `).join('')
 }
 
 // 初始化
 renderCategories()
 renderSnacks()
+
+// 如果 URL 里有订单参数，自动显示并保存
+function checkUrlOrder() {
+  const params = new URLSearchParams(window.location.search)
+  const orderStr = params.get('order')
+  if (orderStr) {
+    try {
+      const order = JSON.parse(decodeURIComponent(atob(orderStr)))
+      // 保存到本地
+      const orders = JSON.parse(localStorage.getItem('orders') || '[]')
+      orders.unshift(order)
+      localStorage.setItem('orders', JSON.stringify(orders))
+      // 显示在管理后台
+      switchPage('admin', document.querySelectorAll('.nav-tab')[1])
+      setTimeout(() => {
+        alert('收到新订单！🎉')
+      }, 300)
+      // 清空 URL 参数
+      history.replaceState(null, '', window.location.pathname)
+    } catch(e) {
+      console.error(e)
+    }
+  }
+}
+checkUrlOrder()
 </script>
 </body>
 </html>
