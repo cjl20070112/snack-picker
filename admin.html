@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>订单管理 - 零食小铺</title>
+<script src="https://imgcache.qq.com/qcloud/cloudbase-js-sdk/2.7.6/cloudbase.full.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -48,7 +49,8 @@ body {
   border-bottom: 1px solid #fdf0f5;
   margin-bottom: 12px;
 }
-.order-time { font-size: 13px; color: #888; }
+.order-user { font-size: 14px; font-weight: bold; color: #333; }
+.order-time { font-size: 12px; color: #999; margin-top: 3px; }
 .order-actions { display: flex; gap: 8px; align-items: center; }
 .order-status {
   font-size: 12px;
@@ -95,6 +97,12 @@ body {
 }
 .empty-icon { font-size: 60px; margin-bottom: 15px; }
 
+.loading {
+  text-align: center;
+  padding: 60px 0;
+  color: #999;
+}
+
 .back-link {
   display: block;
   text-align: center;
@@ -112,125 +120,150 @@ body {
   <p>她选的零食都在这里啦</p>
 </div>
 
-<div class="order-list" id="orderList"></div>
+<div class="loading" id="loading">加载中...</div>
+<div class="order-list" id="orderList" style="display:none"></div>
 
 <a class="back-link" href="index.html">← 去选零食</a>
 
 <script>
-// 从本地加载订单列表
-function loadOrders() {
-  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-  
-  if (orders.length === 0) {
-    document.getElementById('orderList').innerHTML = `<div class="empty">
-      <div class="empty-icon">📭</div>
-      <div>还没有订单哦</div>
-      <div style="font-size: 12px; margin-top: 10px; color: #bbb;">她选完后把链接发给你，打开就自动保存到这里</div>
-    </div>`
-    return
-  }
-  
-  // 最新订单是第一个
-  const latest = orders[0]
-  // 历史订单是剩下的
-  const history = orders.slice(1)
-  
-  let html = `
-    <div class="section-title">🌟 最新订单</div>
-    <div class="order-card latest">
-      <div class="order-header">
-        <div class="order-time">${latest.time}</div>
-        <div class="order-actions">
-          <div class="order-status ${latest.done ? 'done' : ''}" onclick="toggleDone(0)">${latest.done ? '✓ 已买' : '待买'}</div>
-          <button class="delete-btn" onclick="deleteOrder(0)">删除</button>
+// 初始化 CloudBase
+const app = cloudbase.init({
+  env: 'snack-d8g93zkjucee67b7e'
+})
+const auth = app.auth()
+const db = app.database()
+
+async function loadOrders() {
+  try {
+    // 匿名登录
+    await auth.signInAnonymously()
+    
+    // 从数据库拉取订单，按时间倒序
+    const res = await db.collection('orders')
+      .orderBy('createTime', 'desc')
+      .limit(50)
+      .get()
+    
+    document.getElementById('loading').style.display = 'none'
+    document.getElementById('orderList').style.display = 'block'
+    
+    const orders = res.data
+    
+    if (orders.length === 0) {
+      document.getElementById('orderList').innerHTML = `<div class="empty">
+        <div class="empty-icon">📭</div>
+        <div>还没有订单哦</div>
+        <div style="font-size: 12px; margin-top: 10px; color: #bbb;">她在那边选完提交，这里马上就能看到</div>
+      </div>`
+      return
+    }
+    
+    // 最新订单是第一个
+    const latest = orders[0]
+    // 历史订单是剩下的
+    const history = orders.slice(1)
+    
+    let html = `
+      <div class="section-title">🌟 最新订单</div>
+      <div class="order-card latest">
+        <div class="order-header">
+          <div>
+            <div class="order-user">👤 ${latest.userName}</div>
+            <div class="order-time">${formatTime(latest.createTime)}</div>
+          </div>
+          <div class="order-actions">
+            <div class="order-status" onclick="toggleDone('${latest._id}')">待买</div>
+            <button class="delete-btn" onclick="deleteOrder('${latest._id}')">删除</button>
+          </div>
+        </div>
+        <div class="order-items">
+          ${latest.items.map(item => `
+            <div class="order-item">
+              <span>${item.emoji} ${item.name} x${item.count}</span>
+              <span>¥${(item.price * item.count).toFixed(1)}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="order-footer">
+          <span>合计</span>
+          <span class="order-total">¥${latest.total}</span>
         </div>
       </div>
-      <div class="order-items">
-        ${latest.items.map(item => `
-          <div class="order-item">
-            <span>${item.emoji} ${item.name} x${item.count}</span>
-            <span>¥${(item.price * item.count).toFixed(1)}</span>
-          </div>
-        `).join('')}
-      </div>
-      <div class="order-footer">
-        <span>合计</span>
-        <span class="order-total">¥${latest.total}</span>
-      </div>
-    </div>
-  `
-  
-  if (history.length > 0) {
-    html += `<div class="section-title">📚 历史订单（${history.length}个）</div>`
-    history.forEach((order, index) => {
-      const realIndex = index + 1
-      html += `
-        <div class="order-card" style="opacity: ${order.done ? '0.7' : '1'};">
-          <div class="order-header">
-            <div class="order-time">${order.time}</div>
-            <div class="order-actions">
-              <div class="order-status ${order.done ? 'done' : ''}" onclick="toggleDone(${realIndex})">${order.done ? '✓ 已买' : '待买'}</div>
-              <button class="delete-btn" onclick="deleteOrder(${realIndex})">删除</button>
+    `
+    
+    if (history.length > 0) {
+      html += `<div class="section-title">📚 历史订单（${history.length}个）</div>`
+      history.forEach(order => {
+        html += `
+          <div class="order-card">
+            <div class="order-header">
+              <div>
+                <div class="order-user">👤 ${order.userName}</div>
+                <div class="order-time">${formatTime(order.createTime)}</div>
+              </div>
+              <div class="order-actions">
+                <div class="order-status" onclick="toggleDone('${order._id}')">待买</div>
+                <button class="delete-btn" onclick="deleteOrder('${order._id}')">删除</button>
+              </div>
+            </div>
+            <div class="order-items">
+              ${order.items.map(item => `
+                <div class="order-item">
+                  <span>${item.emoji} ${item.name} x${item.count}</span>
+                  <span>¥${(item.price * item.count).toFixed(1)}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="order-footer">
+              <span>合计</span>
+              <span class="order-total">¥${order.total}</span>
             </div>
           </div>
-          <div class="order-items">
-            ${order.items.map(item => `
-              <div class="order-item">
-                <span>${item.emoji} ${item.name} x${item.count}</span>
-                <span>¥${(item.price * item.count).toFixed(1)}</span>
-              </div>
-            `).join('')}
-          </div>
-          <div class="order-footer">
-            <span>合计</span>
-            <span class="order-total">¥${order.total}</span>
-          </div>
-        </div>
-      `
-    })
-  }
-  
-  document.getElementById('orderList').innerHTML = html
-}
-
-function toggleDone(index) {
-  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-  orders[index].done = !orders[index].done
-  localStorage.setItem('orders', JSON.stringify(orders))
-  loadOrders()
-}
-
-function deleteOrder(index) {
-  if (!confirm('确定删除这个订单吗？')) return
-  const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-  orders.splice(index, 1)
-  localStorage.setItem('orders', JSON.stringify(orders))
-  loadOrders()
-}
-
-// 如果 URL 里有订单参数，自动保存
-function checkUrlOrder() {
-  const params = new URLSearchParams(window.location.search)
-  const orderStr = params.get('order')
-  if (orderStr) {
-    try {
-      const order = JSON.parse(decodeURIComponent(atob(orderStr)))
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-      const exists = orders.some(o => o.time === order.time)
-      if (!exists) {
-        orders.unshift(order)
-        localStorage.setItem('orders', JSON.stringify(orders))
-      }
-      setTimeout(() => {
-        alert('收到新订单！🎉')
-      }, 300)
-    } catch(e) {
-      console.error(e)
+        `
+      })
     }
+    
+    document.getElementById('orderList').innerHTML = html
+    
+  } catch(e) {
+    console.error('加载失败:', e)
+    document.getElementById('loading').style.display = 'none'
+    document.getElementById('orderList').style.display = 'block'
+    document.getElementById('orderList').innerHTML = `<div class="empty">
+      <div class="empty-icon">❌</div>
+      <div>加载失败，请检查网络</div>
+    </div>`
   }
 }
 
-checkUrlOrder()
+function formatTime(date) {
+  if (!date) return ''
+  const d = new Date(date)
+  return d.toLocaleString('zh-CN')
+}
+
+async function toggleDone(id) {
+  // 简单的状态切换，先不做复杂的
+  alert('这个功能后面再加')
+}
+
+async function deleteOrder(id) {
+  if (!confirm('确定删除这个订单吗？')) return
+  try {
+    await db.collection('orders').doc(id).remove()
+    loadOrders()
+  } catch(e) {
+    alert('删除失败')
+  }
+}
+
+// 自动刷新，10秒刷一次
+setInterval(() => {
+  if (!document.hidden) {
+    loadOrders()
+  }
+}, 10000)
+
 loadOrders()
 </script>
 </body>
